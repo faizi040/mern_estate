@@ -1,10 +1,11 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-// import User from './models/user.model.js';
-import UserRouter from "./routes/user.route.js"
+import userRouter from "./routes/user.route.js"
+import authRouter from "./routes/auth.route.js"
 dotenv.config();
 const app = express();  //created an express server
+app.use(express.json())   //for to use jsn as input in req body
 
 
 //usig mongodb atlas for connecting 
@@ -16,31 +17,20 @@ mongoose.connect(process.env.MONGO).then(()=>{
 
 
 
-app.use('/api/user' , UserRouter)
-// //testing database
-// app.post('/test', async (req, res) => {
-//     let success = false;
-//     // res.status(200).send(req.body);
-//     try {
-//         // create a new user
-//         let user = await User.create({
-//             email:"hello@gmail.com" ,
-//             username: "Faizi testing",
-//             password: "12345"
-//         })
-//         if (user) {
-//             success = true;
-//             res.json({ success });
-//         }
+app.use('/api/user' , userRouter)
+app.use('/api/auth' , authRouter)
 
-//     } catch (error) {
-//         console.error(error.message);
-//         res.status(500).send(success, "some error occure");
-//     }
-//     // .then(user => res.json(user)).catch(err=>{console.log(err),res.json(err.msg)});
+//middleware to handle errors
 
-// })
-
+app.use((err,req,res,next)=>{
+    const statusCode = err.statusCode || 500;
+    const message = err.message || 'Internal Server Error';
+    return res.status(statusCode).json({
+        success:false,
+        statusCode,
+        message
+    })
+})
 
 // now listening server on port 3000
 app.listen(3000,()=>{
